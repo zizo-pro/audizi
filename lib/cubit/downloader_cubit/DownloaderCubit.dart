@@ -1,18 +1,19 @@
+// ignore_for_file: prefer_typing_uninitialized_variables, file_names
+
 import 'dart:developer';
 import 'dart:io';
 import 'package:audiotagger/audiotagger.dart';
-import 'package:drive_music/audio_tagger.dart';
-import 'package:drive_music/cubit/states.dart';
+import 'package:drive_music/cubit/downloader_cubit/DownloaderStates.dart';
 import 'package:ffmpeg_kit_flutter_audio/ffmpeg_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_downloader/image_downloader.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
-class AppCubit extends Cubit<AppStates> {
-  AppCubit() : super(AppInitState());
+class DownloaderCubit extends Cubit<DownloadStates> {
+  DownloaderCubit() : super(DownloaderInitState());
 
-  static AppCubit get(context) => BlocProvider.of(context);
+  static DownloaderCubit get(context) => BlocProvider.of(context);
 
   TextEditingController linkEntry = TextEditingController();
   List<FileSystemEntity> entities = [];
@@ -24,16 +25,14 @@ class AppCubit extends Cubit<AppStates> {
 
   Future<void> downloadVideo({required String link}) async {
     var yt = YoutubeExplode();
-
-    var videox = await yt.videos.get(link).then((value) {
+    
+    await yt.videos.get(link).then((value) {
       videoName = value.title;
       value.publishDate!.year;
-      // value.
-
       videoArtist = value.author;
       imageUrl = value.thumbnails.highResUrl;
       video = value;
-      emit(AppLinkEnterState());
+      emit(DownloaderLinkEnterState());
     });
 
     var manifest = await yt.videos.streamsClient.getManifest(link);
@@ -49,13 +48,10 @@ class AppCubit extends Cubit<AppStates> {
       count += data.length;
       progress = ((count / len) * 100).ceil();
       fileStream.add(data);
-      emit(AppProgressBar());
+      emit(DownloaderProgressBar());
     }
     downloadImage(url: imageUrl, title: videoName);
     await fileStream.close().then((value) => convert(video));
-
-    // await convert().then((value) => tag(video: video).then((value) {}));
-    // tag(video: video);
   }
 
   Future<void> convert(video) async {
