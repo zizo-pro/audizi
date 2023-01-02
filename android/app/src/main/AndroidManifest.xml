@@ -4,7 +4,7 @@
    <application
 				tools:replace="android:label"
 				android:requestLegacyExternalStorage="true"
-        android:label="drive_music"
+        android:label="Audizi"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

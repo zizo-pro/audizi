@@ -1,3 +1,4 @@
+import 'package:drive_music/cubit/bloc_observer.dart';
 import 'package:drive_music/cubit/downloader_cubit/DownloaderStates.dart';
 import 'package:drive_music/cubit/main_cubit/AppCubit.dart';
 import 'package:drive_music/cubit/main_cubit/AppStates.dart';
@@ -10,7 +11,9 @@ import 'cubit/downloader_cubit/DownloaderCubit.dart';
 
 void main() {
   print("test");
-  runApp(const MyApp());
+  BlocOverrides.runZoned(() {
+    runApp(const MyApp());
+  }, blocObserver: MyBlocObserver());
 }
 
 class MyApp extends StatelessWidget {
@@ -24,7 +27,7 @@ class MyApp extends StatelessWidget {
       providers: [
         BlocProvider(create: (context) => AppCubit()),
         BlocProvider(create: (context) => DownloaderCubit()),
-        BlocProvider(create: (context) => YoutubeCubit()),
+        BlocProvider(create: (context) => YoutubeCubit()..getTrend()),
       ],
       child: BlocConsumer<AppCubit, AppStates>(
           listener: (context, state) {},

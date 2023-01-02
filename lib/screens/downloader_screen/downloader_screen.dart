@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart';
 import 'package:drive_music/cubit/downloader_cubit/DownloaderCubit.dart';
+import 'package:drive_music/test.dart';
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 
@@ -42,7 +43,9 @@ class DownloaderScreen extends StatelessWidget {
           ),
           TextButton(
             onPressed: () {
-              cubit.downloadVideo(link: cubit.linkEntry.text);
+              // print("pressed on the button");
+              test();
+              // cubit.downloadVideo(link: cubit.linkEntry.text);
             },
             style: const ButtonStyle(
                 backgroundColor: MaterialStatePropertyAll(Colors.blue)),

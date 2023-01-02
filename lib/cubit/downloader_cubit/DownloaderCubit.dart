@@ -9,6 +9,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_downloader/image_downloader.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
+import 'package:html/dom.dart' as dom;
+import 'package:html/parser.dart' as parser;
+import 'package:http/http.dart' as http;
 
 class DownloaderCubit extends Cubit<DownloadStates> {
   DownloaderCubit() : super(DownloaderInitState());
@@ -25,7 +28,7 @@ class DownloaderCubit extends Cubit<DownloadStates> {
 
   Future<void> downloadVideo({required String link}) async {
     var yt = YoutubeExplode();
-    
+
     await yt.videos.get(link).then((value) {
       videoName = value.title;
       value.publishDate!.year;
@@ -51,6 +54,7 @@ class DownloaderCubit extends Cubit<DownloadStates> {
       emit(DownloaderProgressBar());
     }
     downloadImage(url: imageUrl, title: videoName);
+    get_lyrics(artist: videoArtist, title: videoName);
     await fileStream.close().then((value) => convert(video));
   }
 
@@ -103,17 +107,19 @@ class DownloaderCubit extends Cubit<DownloadStates> {
       // log(value.path);
 
       lst(value,
-          File("/storage/emulated/0/Download/${videoName.toUpperCase()}.jpg"));
+          File("/storage/emulated/0/Download/${videoName.toUpperCase()}.jpg"),File("/storage/emulated/0/Download/${videoName.toUpperCase()}.lrc"));
     });
   }
 
-  void lst(File fileSong, File fileImage) async {
+  void lst(File fileSong, File fileImage,File lyrics) async {
     Directory("/storage/emulated/0/songs/${videoArtist.toUpperCase()}")
         .exists()
         .then((value) async {
       if (value) {
         fileImage.rename(
             "/storage/emulated/0/songs/${videoArtist.toUpperCase()}/${videoName.toUpperCase()}.jpg");
+        lyrics.rename(
+            "/storage/emulated/0/songs/${videoArtist.toUpperCase()}/${videoName.toUpperCase()}.lrc");
         fileSong
             .rename(
                 "/storage/emulated/0/songs/${videoArtist.toUpperCase()}/${videoName.toUpperCase()}.mp3")
@@ -127,7 +133,8 @@ class DownloaderCubit extends Cubit<DownloadStates> {
                 .then((value) {
           fileImage.rename(
               "/storage/emulated/0/songs/${videoArtist.toUpperCase()}/${videoName.toUpperCase()}.jpg");
-
+          lyrics.rename(
+              "/storage/emulated/0/songs/${videoArtist.toUpperCase()}/${videoName.toUpperCase()}.lrc");
           fileSong
               .rename(
                   "/storage/emulated/0/songs/${videoArtist.toUpperCase()}/${videoName.toUpperCase()}.mp3")
@@ -152,4 +159,26 @@ class DownloaderCubit extends Cubit<DownloadStates> {
         destination: AndroidDestinationType.custom(directory: 'Download')
           ..subDirectory("${title.toUpperCase()}.jpg"));
   }
+}
+
+void get_lyrics({required String artist, required String title}) async {
+  print("pressed here");
+  final response = await http.get(Uri.parse(
+      'https://www.rentanadviser.com/subtitles/getsubtitle.aspx?artist=${artist}&song=${title}'));
+  dom.Document document = parser.parse(response.body);
+  final lyrics = document
+      .getElementById("ctl00_ContentPlaceHolder1_lbllyrics_simple")!
+      .text;
+  var index = lyrics.indexOf("[");
+  _write(text: lyrics.substring(index, lyrics.length).replaceAll("[", "\n["),title:title);
+}
+
+_write({required String text,required String title}) async {
+  print("this happend");
+  final File directory = File("/storage/emulated/0/Download/${title.toUpperCase()}.lrc");
+  await directory.writeAsString(text).then((value) {
+    print(value.path);
+  }).catchError((onError) {
+    print(onError.toString());
+  });
 }
